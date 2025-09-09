@@ -1,89 +1,136 @@
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ArbolNA {
     private NodoNA raiz;
 
-    // Crear raíz si no existe
-    public void setRaiz(int id, String nombre) {
-        if (raiz == null) raiz = new NodoNA(id, nombre);
+    // ====== Inserción (recursiva) ======
+    public void insertar(int id) {
+        raiz = insertarRec(raiz, id);
     }
 
-    public NodoNA getRaiz() { return raiz; }
+    private NodoNA insertarRec(NodoNA nodo, int id) {
+        if (nodo == null) return new NodoNA(id);
+        if (id < nodo.id) nodo.izquierdo = insertarRec(nodo.izquierdo, id);
+        else if (id > nodo.id) nodo.derecho = insertarRec(nodo.derecho, id);
+        // si es igual, no insertamos duplicado (o podrías manejar conteo)
+        return nodo;
+    }
 
-    // Inserta hijo bajo parentId (DFS simple). Retorna true si insertó.
-    public boolean insertar(int parentId, int id, String nombre) {
-        if (raiz == null) return false;
-        NodoNA p = buscar(parentId);
-        if (p == null) return false;
-        // Evitar ids duplicados (búsqueda rápida)
-        if (buscar(id) != null) return false;
-        p.hijos.add(new NodoNA(id, nombre));
+    // ====== Búsqueda (recursiva) ======
+    public boolean contiene(int id) {
+        return contieneRec(raiz, id);
+    }
+
+    private boolean contieneRec(NodoNA nodo, int id) {
+        if (nodo == null) return false;
+        if (id == nodo.id) return true;
+        if (id < nodo.id) return contieneRec(nodo.izquierdo, id);
+        return contieneRec(nodo.derecho, id);
+    }
+
+    // ====== Eliminación (recursiva, casos 0/1/2 hijos) ======
+    public void eliminar(int id) {
+        raiz = eliminarRec(raiz, id);
+    }
+
+    private NodoNA eliminarRec(NodoNA nodo, int id) {
+        if (nodo == null) return null;
+
+        if (id < nodo.id) {
+            nodo.izquierdo = eliminarRec(nodo.izquierdo, id);
+        } else if (id > nodo.id) {
+            nodo.derecho = eliminarRec(nodo.derecho, id);
+        } else {
+            // Encontrado: manejar casos
+            // 1) sin hijos
+            if (nodo.izquierdo == null && nodo.derecho == null) {
+                return null;
+            }
+            // 2) un hijo
+            if (nodo.izquierdo == null) return nodo.derecho;
+            if (nodo.derecho == null) return nodo.izquierdo;
+
+            // 3) dos hijos: reemplazar por el mínimo del subárbol derecho
+            NodoNA sucesor = minNodo(nodo.derecho);
+            nodo.id = sucesor.id;
+            nodo.derecho = eliminarRec(nodo.derecho, sucesor.id);
+        }
+        return nodo;
+    }
+
+    private NodoNA minNodo(NodoNA nodo) {
+        // Recursivo: ir siempre al izquierdo
+        if (nodo.izquierdo == null) return nodo;
+        return minNodo(nodo.izquierdo);
+    }
+
+    // ====== Editar (actualizar ID): delete + insert ======
+    public boolean editarId(int idActual, int idNuevo) {
+        if (!contiene(idActual)) return false;
+        if (contiene(idNuevo)) return false; // evitar duplicados
+        eliminar(idActual);
+        insertar(idNuevo);
         return true;
     }
 
-    // Busca por id (DFS recursivo)
-    public NodoNA buscar(int id) {
-        return dfsBuscar(raiz, id);
-    }
-
-    private NodoNA dfsBuscar(NodoNA actual, int id) {
-        if (actual == null) return null;
-        if (actual.id == id) return actual;
-        for (NodoNA h : actual.hijos) {
-            NodoNA r = dfsBuscar(h, id);
-            if (r != null) return r;
-        }
-        return null;
-    }
-
-    // Eliminar subárbol por id (no permite borrar la raíz en esta base)
-    public boolean eliminar(int id) {
-        if (raiz == null || raiz.id == id) return false;
-        return eliminarRec(raiz, id);
-    }
-
-    private boolean eliminarRec(NodoNA actual, int id) {
-        if (actual == null) return false;
-        Iterator<NodoNA> it = actual.hijos.iterator();
-        while (it.hasNext()) {
-            NodoNA h = it.next();
-            if (h.id == id) { it.remove(); return true; }
-            if (eliminarRec(h, id)) return true;
-        }
-        return false;
-    }
-
-    // Recorridos
+    // ====== Recorridos (recursivos) ======
     public List<Integer> preorden() {
         List<Integer> res = new ArrayList<>();
-        pre(raiz, res); return res;
+        preordenRec(raiz, res);
+        return res;
     }
-    private void pre(NodoNA n, List<Integer> res) {
-        if (n == null) return;
-        res.add(n.id);
-        for (NodoNA h : n.hijos) pre(h, res);
+
+    private void preordenRec(NodoNA nodo, List<Integer> res) {
+        if (nodo == null) return;
+        res.add(nodo.id);
+        preordenRec(nodo.izquierdo, res);
+        preordenRec(nodo.derecho, res);
+    }
+
+    public List<Integer> inorden() {
+        List<Integer> res = new ArrayList<>();
+        inordenRec(raiz, res);
+        return res;
+    }
+
+    private void inordenRec(NodoNA nodo, List<Integer> res) {
+        if (nodo == null) return;
+        inordenRec(nodo.izquierdo, res);
+        res.add(nodo.id);
+        inordenRec(nodo.derecho, res);
     }
 
     public List<Integer> postorden() {
         List<Integer> res = new ArrayList<>();
-        post(raiz, res); return res;
-    }
-    private void post(NodoNA n, List<Integer> res) {
-        if (n == null) return;
-        for (NodoNA h : n.hijos) post(h, res);
-        res.add(n.id);
+        postordenRec(raiz, res);
+        return res;
     }
 
-    public List<Integer> porNiveles() {
-        List<Integer> res = new ArrayList<>();
-        if (raiz == null) return res;
-        Queue<NodoNA> q = new ArrayDeque<>();
-        q.add(raiz);
-        while (!q.isEmpty()) {
-            NodoNA u = q.remove();
-            res.add(u.id);
-            for (NodoNA h : u.hijos) q.add(h);
-        }
-        return res;
+    private void postordenRec(NodoNA nodo, List<Integer> res) {
+        if (nodo == null) return;
+        postordenRec(nodo.izquierdo, res);
+        postordenRec(nodo.derecho, res);
+        res.add(nodo.id);
+    }
+
+    // ====== Utilidades ======
+    public void limpiar() { raiz = null; }
+
+    public boolean vacio() { return raiz == null; }
+
+    // Construir un BST balanceado desde un arreglo ordenado [lo..hi] (recursivo)
+    public void construirBalanceadoDesdeOrdenado(int[] arr) {
+        limpiar();
+        raiz = construirBalanceadoRec(arr, 0, arr.length - 1);
+    }
+
+    private NodoNA construirBalanceadoRec(int[] arr, int lo, int hi) {
+        if (lo > hi) return null;
+        int mid = lo + (hi - lo) / 2;
+        NodoNA nodo = new NodoNA(arr[mid]);
+        nodo.izquierdo = construirBalanceadoRec(arr, lo, mid - 1);
+        nodo.derecho  = construirBalanceadoRec(arr, mid + 1, hi);
+        return nodo;
     }
 }
