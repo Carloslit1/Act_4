@@ -24,3 +24,11 @@ Como ejecutar:
 java DemoBase
 
 El menú es interactivo y todo lo que pruebes quedará registrado en actividad.log, que sirve como evidencia de las pruebas.
+
+
+
+💭 Reflexión personal sobre los aboles binarios
+
+Los árboles binarios no son solo un tema más importante de programación, sicneramente son como una forma de ver el valor del valor distitnto y ayuda con la jerarquía. y en un arreglo puedes buscar y eliminar pero todo se siente más plano. Con los árboles es difrente todo se acomoda de forma más natural como si fuera algo asi como ecosistema dentro del código.
+
+hay estructuras que nos ayudan a resolver problemas de forma varias formas. 
